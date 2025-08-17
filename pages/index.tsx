@@ -4,11 +4,10 @@ type Lead = {
   client_name: string;
   phone?: string;
   email?: string;
-  area_ping?: number | string;
+  area_ping?: number | string | undefined;
   category?: string;
   source?: string;
   notes?: string;
-
   budget_range?: string;
   add_carpentry?: boolean;
   add_system_furniture?: boolean;
@@ -16,6 +15,27 @@ type Lead = {
   add_painting?: boolean;
   add_flooring?: boolean;
 };
+
+// ✅ 統一的初始值
+const INITIAL_FORM: Lead = {
+  client_name: "",
+  phone: "",
+  email: "",
+  area_ping: "",
+  category: "",
+  source: "官網",
+  notes: "",
+  budget_range: "",
+  add_carpentry: false,
+  add_system_furniture: false,
+  add_electrical: false,
+  add_painting: false,
+  add_flooring: false,
+};
+
+// 用它初始化
+const [form, setForm] = useState<Lead>(INITIAL_FORM);
+
 
 const P = {
   BASE: Number(process.env.NEXT_PUBLIC_QUOTE_BASE_PRICE) || 80000,
@@ -92,10 +112,8 @@ export default function Home() {
       const out = await res.json();
       if (out?.ok) {
         setMsg(`已送出！預估金額：${(out.estimate || est).toLocaleString()} 元`);
-        setForm({
-          add_carpentry: false, add_system_furniture: false,
-          add_electrical: false, add_painting: false, add_flooring: false,
-        });
+        setForm(INITIAL_FORM); // ✅ 不會少欄位
+
       } else {
         throw new Error(out?.error || "提交失敗");
       }
