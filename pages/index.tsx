@@ -1,4 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+- import { useEffect, useMemo, useState } from "react";
++ import React, { useEffect, useMemo, useState } from "react";
+
 
 type Lead = {
   client_name: string;
@@ -242,3 +244,7 @@ const styles = {
   card: { border: "1px solid rgba(140,140,140,.3)", borderRadius: 14, padding: 20, boxShadow: "0 4px 14px rgba(0,0,0,.06)" },
   row: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 },
 } as const;
+
+export async function getServerSideProps() {
+  return { props: {} };
+}
