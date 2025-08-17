@@ -29,12 +29,10 @@ type Props = {
 };
 
 export const getServerSideProps: GetServerSideProps<Props> = async (ctx) => {
-  // ✅ 加在這裡
+  // ✅ 簡單密碼保護（看 cookie）
   const cookiePwd = ctx.req.cookies?.admin_pwd;
   if (cookiePwd !== process.env.RECORDS_ADMIN_PWD) {
-    return {
-      redirect: { destination: "/?need_admin=1", permanent: false },
-    };
+    return { redirect: { destination: "/?need_admin=1", permanent: false } };
   }
 
   const supabase = getAdminClient();
@@ -49,7 +47,7 @@ export const getServerSideProps: GetServerSideProps<Props> = async (ctx) => {
     .from("leads")
     .select("*", { count: "exact", head: true });
 
-  // 再拉分頁資料
+  // 再拉分頁資料（新→舊）
   const { data, error } = await supabase
     .from("leads")
     .select("*")
@@ -71,7 +69,6 @@ export const getServerSideProps: GetServerSideProps<Props> = async (ctx) => {
   };
 };
 
-
 export default function Records({ rows, total, page, pageSize }: Props) {
   const [q, setQ] = useState("");
 
@@ -90,6 +87,7 @@ export default function Records({ rows, total, page, pageSize }: Props) {
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
+  // ✅ 匯出 CSV（含 BOM、電話防科學記號）
   const toCSV = () => {
     const headers = [
       "created_at",
@@ -108,32 +106,39 @@ export default function Records({ rows, total, page, pageSize }: Props) {
       "quote_estimate",
       "notes",
     ];
-    const lines = [
-      headers.join(","),
-      ...filtered.map((r) =>
-        [
-          r.created_at,
-          r.client_name ?? "",
-          r.phone ?? "",
-          r.email ?? "",
-          r.area_ping ?? "",
-          r.category ?? "",
-          r.source ?? "",
-          r.budget_range ?? "",
-          r.add_carpentry ? "1" : "",
-          r.add_system_furniture ? "1" : "",
-          r.add_electrical ? "1" : "",
-          r.add_painting ? "1" : "",
-          r.add_flooring ? "1" : "",
-          r.quote_estimate ?? "",
-          (r.notes ?? "").replace(/\n/g, " ").replace(/,/g, "，"),
-        ]
-          .map((x) => `"${String(x).replace(/"/g, '""')}"`)
-          .join(",")
-      ),
-    ].join("\n");
 
-    const blob = new Blob([lines], { type: "text/csv;charset=utf-8;" });
+    const rowsForCsv = filtered.map((r) => {
+      // 防止 Excel 把電話變 1.23E+08：在字串前面加 \t
+      const phone = r.phone ? `\t${r.phone}` : "";
+
+      const cols = [
+        r.created_at,
+        r.client_name ?? "",
+        phone,
+        r.email ?? "",
+        r.area_ping ?? "",
+        r.category ?? "",
+        r.source ?? "",
+        r.budget_range ?? "",
+        r.add_carpentry ? "1" : "",
+        r.add_system_furniture ? "1" : "",
+        r.add_electrical ? "1" : "",
+        r.add_painting ? "1" : "",
+        r.add_flooring ? "1" : "",
+        r.quote_estimate ?? "",
+        (r.notes ?? "").replace(/\n/g, " ").replace(/,/g, "，"),
+      ];
+
+      // CSV 安全轉義：把每個欄位包雙引號，內部雙引號再轉成兩個
+      return cols.map((x) => `"${String(x).replace(/"/g, '""')}"`).join(",");
+    });
+
+    const content = [headers.join(","), ...rowsForCsv].join("\n");
+
+    // ✅ 加上 UTF-8 BOM，避免 Excel 中文亂碼
+    const withBom = "\uFEFF" + content;
+
+    const blob = new Blob([withBom], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -203,7 +208,14 @@ export default function Records({ rows, total, page, pageSize }: Props) {
                     .join("、")}
                 </td>
                 <td>{r.quote_estimate?.toLocaleString?.() ?? ""}</td>
-                <td style={{ maxWidth: 360, whiteSpace: "nowrap", textOverflow: "ellipsis", overflow: "hidden" }}>
+                <td
+                  style={{
+                    maxWidth: 360,
+                    whiteSpace: "nowrap",
+                    textOverflow: "ellipsis",
+                    overflow: "hidden",
+                  }}
+                >
                   {r.notes}
                 </td>
               </tr>
@@ -214,7 +226,7 @@ export default function Records({ rows, total, page, pageSize }: Props) {
                   沒有資料
                 </td>
               </tr>
-            )}
+            ))}
           </tbody>
         </table>
       </div>
