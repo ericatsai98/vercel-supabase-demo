@@ -1,6 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
-
-
+import React, { useMemo, useState } from "react";
 
 type Lead = {
   client_name: string;
@@ -35,10 +33,6 @@ const INITIAL_FORM: Lead = {
   add_flooring: false,
 };
 
-// 用它初始化
-const [form, setForm] = useState<Lead>(INITIAL_FORM);
-
-
 const P = {
   BASE: Number(process.env.NEXT_PUBLIC_QUOTE_BASE_PRICE) || 80000,
   PER_PING: Number(process.env.NEXT_PUBLIC_QUOTE_PRICE_PER_PING) || 20000,
@@ -66,23 +60,8 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
 
-  const [form, setForm] = useState<Lead>({
-  client_name: "",        // ✅補上必填欄位
-  phone: "",
-  email: "",
-  area_ping: "",
-  category: "",
-  source: "官網",
-  notes: "",
-  budget_range: "",
-
-  add_carpentry: false,
-  add_system_furniture: false,
-  add_electrical: false,
-  add_painting: false,
-  add_flooring: false,
-});
-
+  // ✅ 只在元件內使用 useState
+  const [form, setForm] = useState<Lead>(INITIAL_FORM);
 
   const UNLOCK_PWD = process.env.NEXT_PUBLIC_DEMO_PWD || "demo123";
   const est = useMemo(() => calcEstimate(form.area_ping, form), [form]);
@@ -99,11 +78,10 @@ export default function Home() {
     e.preventDefault();
     setLoading(true); setMsg(null);
 
-   const payload: Lead = {
-  ...form,
-  area_ping: form.area_ping ? Number(form.area_ping) : undefined, // ✅ 改這行
-};
-
+    const payload: Lead = {
+      ...form,
+      area_ping: form.area_ping ? Number(form.area_ping) : undefined, // 不送 null
+    };
 
     try {
       const res = await fetch("/api/submit", {
@@ -114,8 +92,7 @@ export default function Home() {
       const out = await res.json();
       if (out?.ok) {
         setMsg(`已送出！預估金額：${(out.estimate || est).toLocaleString()} 元`);
-        setForm(INITIAL_FORM); // ✅ 不會少欄位
-
+        setForm(INITIAL_FORM); // 一次重置所有欄位
       } else {
         throw new Error(out?.error || "提交失敗");
       }
@@ -163,7 +140,7 @@ export default function Home() {
               </div>
               <div>
                 <label>坪數</label>
-                <input type="number" step="0.1" name="area_ping" value={form.area_ping as any || ""} onChange={onChange} />
+                <input type="number" step="0.1" name="area_ping" value={(form.area_ping as any) || ""} onChange={onChange} />
               </div>
             </div>
 
@@ -245,6 +222,7 @@ const styles = {
   row: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 },
 } as const;
 
+// ✅ 避免在 build 階段執行元件
 export async function getServerSideProps() {
   return { props: {} };
 }
