@@ -77,10 +77,11 @@ export default function Home() {
     e.preventDefault();
     setLoading(true); setMsg(null);
 
-    const payload: Lead = {
-      ...form,
-      area_ping: form.area_ping ? Number(form.area_ping) : null,
-    };
+   const payload: Lead = {
+  ...form,
+  area_ping: form.area_ping ? Number(form.area_ping) : undefined, // ✅ 改這行
+};
+
 
     try {
       const res = await fetch("/api/submit", {
