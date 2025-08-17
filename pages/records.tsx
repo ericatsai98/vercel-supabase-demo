@@ -89,23 +89,24 @@ export default function Records({ rows, total, page, pageSize }: Props) {
 
   // ✅ 匯出 CSV（含 BOM、電話防科學記號）
   const toCSV = () => {
-    const headers = [
-      "created_at",
-      "client_name",
-      "phone",
-      "email",
-      "area_ping",
-      "category",
-      "source",
-      "budget_range",
-      "add_carpentry",
-      "add_system_furniture",
-      "add_electrical",
-      "add_painting",
-      "add_flooring",
-      "quote_estimate",
-      "notes",
-    ];
+const headers = [
+  { id: "created_at", title: "建立日期" },
+  { id: "client_name", title: "客戶名稱" },
+  { id: "phone", title: "電話" },
+  { id: "email", title: "信箱" },
+  { id: "area_ping", title: "坪數" },
+  { id: "category", title: "案件類別" },
+  { id: "source", title: "來源" },
+  { id: "budget_range", title: "預算區間" },
+  { id: "add_carpentry", title: "木作" },
+  { id: "add_system_furniture", title: "系統櫃" },
+  { id: "add_electrical", title: "水電" },
+  { id: "add_painting", title: "油漆" },
+  { id: "add_flooring", title: "地板" },
+  { id: "quote_estimate", title: "估算報價" },
+  { id: "notes", title: "備註" }
+]
+;
 
     const rowsForCsv = filtered.map((r) => {
       // 防止 Excel 把電話變 1.23E+08：在字串前面加 \t
