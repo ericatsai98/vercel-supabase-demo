@@ -185,49 +185,53 @@ export default function Records({ rows, total, page, pageSize }: Props) {
               <th>備註</th>
             </tr>
           </thead>
-          <tbody>
-            {filtered.map((r) => (
-              <tr key={r.id}>
-                <td>{new Date(r.created_at).toLocaleString()}</td>
-                <td>{r.client_name}</td>
-                <td>{r.phone}</td>
-                <td>{r.email}</td>
-                <td>{r.area_ping ?? ""}</td>
-                <td>{r.category ?? ""}</td>
-                <td>{r.source ?? ""}</td>
-                <td>{r.budget_range ?? ""}</td>
-                <td style={{ whiteSpace: "nowrap" }}>
-                  {[
-                    r.add_carpentry && "木作",
-                    r.add_system_furniture && "系統櫃",
-                    r.add_electrical && "水電",
-                    r.add_painting && "油漆",
-                    r.add_flooring && "地坪",
-                  ]
-                    .filter(Boolean)
-                    .join("、")}
-                </td>
-                <td>{r.quote_estimate?.toLocaleString?.() ?? ""}</td>
-                <td
-                  style={{
-                    maxWidth: 360,
-                    whiteSpace: "nowrap",
-                    textOverflow: "ellipsis",
-                    overflow: "hidden",
-                  }}
-                >
-                  {r.notes}
-                </td>
-              </tr>
-            ))}
-            {filtered.length === 0 && (
-              <tr>
-                <td colSpan={11} style={{ textAlign: "center", padding: 20, opacity: 0.7 }}>
-                  沒有資料
-                </td>
-              </tr>
-            ))}
-          </tbody>
+<tbody>
+  {filtered.map((r) => {
+    return (
+      <tr key={r.id}>
+        <td>{new Date(r.created_at).toLocaleString()}</td>
+        <td>{r.client_name}</td>
+        <td>{r.phone}</td>
+        <td>{r.email}</td>
+        <td>{r.area_ping ?? ""}</td>
+        <td>{r.category ?? ""}</td>
+        <td>{r.source ?? ""}</td>
+        <td>{r.budget_range ?? ""}</td>
+        <td style={{ whiteSpace: "nowrap" }}>
+          {[
+            r.add_carpentry && "木作",
+            r.add_system_furniture && "系統櫃",
+            r.add_electrical && "水電",
+            r.add_painting && "油漆",
+            r.add_flooring && "地坪",
+          ]
+            .filter(Boolean)
+            .join("、")}
+        </td>
+        <td>{r.quote_estimate?.toLocaleString?.() ?? ""}</td>
+        <td
+          style={{
+            maxWidth: 360,
+            whiteSpace: "nowrap",
+            textOverflow: "ellipsis",
+            overflow: "hidden",
+          }}
+        >
+          {r.notes}
+        </td>
+      </tr>
+    );
+  })}
+
+  {filtered.length === 0 && (
+    <tr>
+      <td colSpan={11} style={{ textAlign: "center", padding: 20, opacity: 0.7 }}>
+        沒有資料
+      </td>
+    </tr>
+  )}
+</tbody>
+
         </table>
       </div>
 
