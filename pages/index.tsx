@@ -45,12 +45,22 @@ export default function Home() {
   const [msg, setMsg] = useState<string | null>(null);
 
   const [form, setForm] = useState<Lead>({
-    add_carpentry: false,
-    add_system_furniture: false,
-    add_electrical: false,
-    add_painting: false,
-    add_flooring: false,
-  });
+  client_name: "",        // ✅補上必填欄位
+  phone: "",
+  email: "",
+  area_ping: "",
+  category: "",
+  source: "官網",
+  notes: "",
+  budget_range: "",
+
+  add_carpentry: false,
+  add_system_furniture: false,
+  add_electrical: false,
+  add_painting: false,
+  add_flooring: false,
+});
+
 
   const UNLOCK_PWD = process.env.NEXT_PUBLIC_DEMO_PWD || "demo123";
   const est = useMemo(() => calcEstimate(form.area_ping, form), [form]);
