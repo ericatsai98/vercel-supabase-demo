@@ -87,68 +87,73 @@ export default function Records({ rows, total, page, pageSize }: Props) {
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
-  // ✅ 匯出 CSV（含 BOM、電話防科學記號）
-  const toCSV = () => {
-const headers = [
-  { id: "created_at", title: "建立日期" },
-  { id: "client_name", title: "客戶名稱" },
-  { id: "phone", title: "電話" },
-  { id: "email", title: "信箱" },
-  { id: "area_ping", title: "坪數" },
-  { id: "category", title: "案件類別" },
-  { id: "source", title: "來源" },
-  { id: "budget_range", title: "預算區間" },
-  { id: "add_carpentry", title: "木作" },
-  { id: "add_system_furniture", title: "系統櫃" },
-  { id: "add_electrical", title: "水電" },
-  { id: "add_painting", title: "油漆" },
-  { id: "add_flooring", title: "地板" },
-  { id: "quote_estimate", title: "估算報價" },
-  { id: "notes", title: "備註" }
-]
-;
+// ✅ 匯出 CSV（含 BOM、電話防科學記號、中文標題）
+const toCSV = () => {
+  // 1) 標題用「字串」，或由物件陣列取 title
+  const headerTitles = [
+    "建立日期",
+    "客戶名稱",
+    "電話",
+    "信箱",
+    "坪數",
+    "案件類別",
+    "來源",
+    "預算區間",
+    "木作",
+    "系統櫃",
+    "水電",
+    "油漆",
+    "地板",
+    "估算報價",
+    "備註",
+  ];
 
-    const rowsForCsv = filtered.map((r) => {
-      // 防止 Excel 把電話變 1.23E+08：在字串前面加 \t
-      const phone = r.phone ? `\t${r.phone}` : "";
+  // 2) 每列資料 → 轉成字串陣列
+  const rowsForCsv = filtered.map((r) => {
+    // 防 Excel 把電話變 1.23E+08：前面加 \t
+    const safePhone = r.phone ? `\t${r.phone}` : "";
 
-      const cols = [
-        r.created_at,
-        r.client_name ?? "",
-        phone,
-        r.email ?? "",
-        r.area_ping ?? "",
-        r.category ?? "",
-        r.source ?? "",
-        r.budget_range ?? "",
-        r.add_carpentry ? "1" : "",
-        r.add_system_furniture ? "1" : "",
-        r.add_electrical ? "1" : "",
-        r.add_painting ? "1" : "",
-        r.add_flooring ? "1" : "",
-        r.quote_estimate ?? "",
-        (r.notes ?? "").replace(/\n/g, " ").replace(/,/g, "，"),
-      ];
+    const cols = [
+      r.created_at,
+      r.client_name ?? "",
+      safePhone,
+      r.email ?? "",
+      r.area_ping ?? "",
+      r.category ?? "",
+      r.source ?? "",
+      r.budget_range ?? "",
+      r.add_carpentry ? "1" : "",
+      r.add_system_furniture ? "1" : "",
+      r.add_electrical ? "1" : "",
+      r.add_painting ? "1" : "",
+      r.add_flooring ? "1" : "",
+      r.quote_estimate ?? "",
+      // 備註：換行與逗號做安全處理
+      (r.notes ?? "").replace(/\n/g, " ").replace(/,/g, "，"),
+    ];
 
-      // CSV 安全轉義：把每個欄位包雙引號，內部雙引號再轉成兩個
-      return cols.map((x) => `"${String(x).replace(/"/g, '""')}"`).join(",");
-    });
+    // CSV 安全轉義：每格外層加雙引號，內部雙引號變兩個
+    return cols.map((x) => `"${String(x).replace(/"/g, '""')}"`).join(",");
+  });
 
-    const content = [headers.join(","), ...rowsForCsv].join("\n");
+  // 3) 組成 CSV 內容
+  const content = [headerTitles.join(","), ...rowsForCsv].join("\n");
 
-    // ✅ 加上 UTF-8 BOM，避免 Excel 中文亂碼
-    const withBom = "\uFEFF" + content;
+  // 4) 加上 UTF-8 BOM，避免 Excel 中文顯示異常
+  const withBOM = "\uFEFF" + content;
 
-    const blob = new Blob([withBom], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `leads_${new Date().toISOString().slice(0, 10)}.csv`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
-  };
+  // 5) 下載
+  const blob = new Blob([withBOM], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `leads_${new Date().toISOString().slice(0, 10)}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+};
+
 
   return (
     <div style={styles.wrap}>
